@@ -1,0 +1,22 @@
+{
+  "name": "ProcureAI",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:dhruuvarora/ProcureAI.git",
+  "author": "Dhruv Arora <dhruv862arora@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "db:generate": "kysely-codegen --dialect mysql --numeric-parser number --log-level debug --env-file .env --out-file ./src/db/db.d.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "ts-node-dev": "^2.0.0"
+  }
+}
