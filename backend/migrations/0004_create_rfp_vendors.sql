@@ -1,0 +1,7 @@
+CREATE TABLE rfps_vendors (
+    id BIGSERIAL PRIMARY KEY,
+    rfp_id BIGINT REFERENCES rfps(rfp_id) ON DELETE CASCADE,
+    vendor_id BIGINT REFERENCES vendors(vendor_id) ON DELETE CASCADE,
+    email_sent BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

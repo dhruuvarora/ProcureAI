@@ -1,0 +1,5 @@
+CREATE TABLE categories (
+    category_id BIGSERIAL PRIMARY KEY,
+    category_name VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
