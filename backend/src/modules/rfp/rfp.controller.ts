@@ -43,6 +43,64 @@ export class RfpController {
       });
     }
   }
+  async getRfps(req: Request, res: Response) {
+    try {
+      const data = await RfpService.getRfps();
+
+      return res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Something went wrong",
+      });
+    }
+  }
+
+  async getRfpById(req: Request, res: Response) {
+    const id = req.params.id;
+
+    const rfp = await RfpService.getRfpById(id);
+
+    return res.status(200).json({
+      success: true,
+      data: rfp,
+    });
+  }
+
+  async updateRfp(req: Request, res: Response) {
+    try {
+      const id = req.params.id;
+      const payload = req.body;
+
+      const updateRfp = await RfpService.updateRfp(id, payload);
+
+      return res.status(200).json({
+        success: true,
+        message: "RFP updated successfully",
+        data: updateRfp,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Something went wrong",
+      });
+    }
+  }
+  
+  async deleteRfp(req: Request, res: Response) {
+    const id = req.params.id;
+
+    const deletedRfp = await RfpService.deleteRfp(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "RFP deleted successfully",
+      data: deletedRfp,
+    });
+  }
 }
 
 export default new RfpController();
