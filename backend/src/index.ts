@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import moduleRouter from "./modules";
 
 dotenv.config();
 
@@ -9,6 +10,8 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Hello, World!");
 });
+
+app.use("api/v1" , moduleRouter)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
