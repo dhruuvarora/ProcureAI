@@ -1,4 +1,3 @@
-import e from "express";
 import { db } from "../../db";
 
 export interface VendorPayload {
@@ -32,7 +31,11 @@ export class VendorService {
 
   async getVendors() {
     try {
-      const vendors = await db.selectFrom("vendors").selectAll().execute();
+      const vendors = await db
+        .selectFrom("vendors")
+        .selectAll()
+        .leftJoin("categories", "vendors.category_id", "categories.category_id")
+        .execute();
 
       return vendors;
     } catch (error) {
@@ -54,8 +57,31 @@ export class VendorService {
     }
   }
 
+  async getVendorByCategory(categoryId: string) {
+    try {
+      const vendor = await db
+        .selectFrom("vendors")
+        .selectAll()
+        .where("vendors.category_id", "=", categoryId)
+        .execute();
+
+      return vendor;
+    } catch (error) {
+      throw new Error("Failed to fetch vendor by category: " + error);
+    }
+  }
+
   async deleteVendor(vendorId: string) {
     try {
+      const vendor = await db
+        .selectFrom("vendors")
+        .select(["vendor_id"])
+        .where("vendor_id", "=", vendorId)
+        .executeTakeFirst();
+
+      if (!vendor) {
+        return false;
+      }
       await db
         .deleteFrom("vendors")
         .where("vendors.vendor_id", "=", vendorId)

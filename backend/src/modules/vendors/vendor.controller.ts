@@ -88,6 +88,30 @@ export class VendorController {
     }
   }
 
+  async getVendorByCategory(req: Request, res: Response) {
+    try {
+      const categroyId = req.query.categoryId as string;
+      const vendor = await VendorService.getVendorByCategory(categroyId);
+
+      if (!vendor) {
+        return res.status(404).json({
+          success: false,
+          message: "Vendor not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: vendor,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  }
+
   async deleteVendor(req: Request, res: Response) {
     const id = req.params.id;
 
