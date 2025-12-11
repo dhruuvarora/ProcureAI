@@ -107,6 +107,28 @@ export class RfpVendorController {
       });
     }
   }
+
+  async sendEmails(req: Request, res: Response) {
+    try {
+      const rfpId = req.params.rfpId;
+
+      const result = await RfpVendorService.sendEmailsToMappedVendors(rfpId);
+
+      return res.status(200).json({
+        success: true,
+        message: "Email sending process completed",
+        sent: result.sent,
+        failed: result.failed,
+      });
+    } catch (error) {
+      console.error("Error sending emails:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send RFP emails",
+      });
+    }
+  }
 }
 
 export default new RfpVendorController();

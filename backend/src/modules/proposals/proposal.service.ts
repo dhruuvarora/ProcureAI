@@ -22,6 +22,7 @@ export class ProposalService {
       throw new Error("RFP does not exist");
     }
 
+    // Validate Vendor
     const vendor = await db
       .selectFrom("vendors")
       .select("vendor_id")
@@ -32,6 +33,7 @@ export class ProposalService {
       throw new Error("Vendor does not exist");
     }
 
+    // Validate mapping
     const mapping = await db
       .selectFrom("rfps_vendors")
       .select("id")
@@ -43,6 +45,7 @@ export class ProposalService {
       throw new Error("Vendor is not mapped to this RFP");
     }
 
+    // Insert new proposal
     const inserted = await db
       .insertInto("vendor_proposals")
       .values({
@@ -75,13 +78,11 @@ export class ProposalService {
         "vendor_proposals.total_cost",
         "vendor_proposals.received_at",
 
-        // Vendor details
         "vendors.vendor_name",
         "vendors.vendor_email",
         "vendors.vendor_phone",
         "vendors.vendor_organization",
 
-        // RFP details
         "rfps.title",
         "rfps.description",
       ])
@@ -120,7 +121,6 @@ export class ProposalService {
       .selectFrom("vendor_proposals")
       .innerJoin("vendors", "vendors.vendor_id", "vendor_proposals.vendor_id")
       .select([
-        // vendor_proposals columns
         "vendor_proposals.proposal_id",
         "vendor_proposals.rfp_id",
         "vendor_proposals.vendor_id",
@@ -130,7 +130,6 @@ export class ProposalService {
         "vendor_proposals.total_cost",
         "vendor_proposals.received_at",
 
-        // vendors columns
         "vendors.vendor_name",
         "vendors.vendor_email",
         "vendors.vendor_phone",
@@ -145,7 +144,6 @@ export class ProposalService {
       .selectFrom("vendor_proposals")
       .innerJoin("rfps", "rfps.rfp_id", "vendor_proposals.rfp_id")
       .select([
-        // proposal columns
         "vendor_proposals.proposal_id",
         "vendor_proposals.rfp_id",
         "vendor_proposals.vendor_id",
@@ -155,7 +153,6 @@ export class ProposalService {
         "vendor_proposals.total_cost",
         "vendor_proposals.received_at",
 
-        // rfp columns
         "rfps.title as rfp_title",
         "rfps.description as rfp_description",
       ])
