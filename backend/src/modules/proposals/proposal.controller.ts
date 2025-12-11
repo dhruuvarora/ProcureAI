@@ -42,4 +42,95 @@ export class ProposalController {
       });
     }
   }
+
+  static async getAllProposals(req: Request, res: Response) {
+    try {
+      const proposals = await ProposalService.getAllProposals();
+
+      if (!proposals || proposals.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No proposals found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        count: proposals.length,
+        data: proposals,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  }
+
+  static async getProposalById(req: Request, res: Response) {
+    try {
+      const id = req.params.id;
+
+      const proposal = await ProposalService.getProposalById(id);
+
+      if (!proposal) {
+        return res.status(404).json({
+          success: false,
+          message: "Proposal not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: proposal,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  }
+
+  static async getProposalsByRfp(req: Request, res: Response) {
+    try {
+      const rfpId = req.params.rfpId;
+
+      const proposals = await ProposalService.getProposalsByRfp(rfpId);
+
+      return res.status(200).json({
+        success: true,
+        count: proposals.length,
+        data: proposals,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  }
+
+  static async getProposalsByVendor(req: Request, res: Response) {
+    try {
+      const vendorId = req.params.vendorId;
+
+      const proposals = await ProposalService.getProposalsByVendor(vendorId);
+
+      return res.status(200).json({
+        success: true,
+        count: proposals.length,
+        data: proposals,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  }
 }

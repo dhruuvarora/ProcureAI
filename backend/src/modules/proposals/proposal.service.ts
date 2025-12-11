@@ -59,4 +59,107 @@ export class ProposalService {
 
     return inserted;
   }
+
+  static async getAllProposals() {
+    return db
+      .selectFrom("vendor_proposals")
+      .innerJoin("vendors", "vendors.vendor_id", "vendor_proposals.vendor_id")
+      .innerJoin("rfps", "rfps.rfp_id", "vendor_proposals.rfp_id")
+      .select([
+        "vendor_proposals.proposal_id",
+        "vendor_proposals.rfp_id",
+        "vendor_proposals.vendor_id",
+        "vendor_proposals.raw_email_text",
+        "vendor_proposals.parsed_json",
+        "vendor_proposals.attachment_document_path",
+        "vendor_proposals.total_cost",
+        "vendor_proposals.received_at",
+
+        // Vendor details
+        "vendors.vendor_name",
+        "vendors.vendor_email",
+        "vendors.vendor_phone",
+        "vendors.vendor_organization",
+
+        // RFP details
+        "rfps.title",
+        "rfps.description",
+      ])
+      .execute();
+  }
+
+  static async getProposalById(id: string) {
+    return db
+      .selectFrom("vendor_proposals")
+      .innerJoin("vendors", "vendors.vendor_id", "vendor_proposals.vendor_id")
+      .innerJoin("rfps", "rfps.rfp_id", "vendor_proposals.rfp_id")
+      .select([
+        "vendor_proposals.proposal_id",
+        "vendor_proposals.rfp_id",
+        "vendor_proposals.vendor_id",
+        "vendor_proposals.raw_email_text",
+        "vendor_proposals.parsed_json",
+        "vendor_proposals.attachment_document_path",
+        "vendor_proposals.total_cost",
+        "vendor_proposals.received_at",
+
+        "vendors.vendor_name",
+        "vendors.vendor_email",
+        "vendors.vendor_phone",
+        "vendors.vendor_organization",
+
+        "rfps.title as rfp_title",
+        "rfps.description as rfp_description",
+      ])
+      .where("vendor_proposals.proposal_id", "=", id)
+      .executeTakeFirst();
+  }
+
+  static async getProposalsByRfp(rfpId: string) {
+    return db
+      .selectFrom("vendor_proposals")
+      .innerJoin("vendors", "vendors.vendor_id", "vendor_proposals.vendor_id")
+      .select([
+        // vendor_proposals columns
+        "vendor_proposals.proposal_id",
+        "vendor_proposals.rfp_id",
+        "vendor_proposals.vendor_id",
+        "vendor_proposals.raw_email_text",
+        "vendor_proposals.parsed_json",
+        "vendor_proposals.attachment_document_path",
+        "vendor_proposals.total_cost",
+        "vendor_proposals.received_at",
+
+        // vendors columns
+        "vendors.vendor_name",
+        "vendors.vendor_email",
+        "vendors.vendor_phone",
+        "vendors.vendor_organization",
+      ])
+      .where("vendor_proposals.rfp_id", "=", rfpId)
+      .execute();
+  }
+
+  static async getProposalsByVendor(vendorId: string) {
+    return db
+      .selectFrom("vendor_proposals")
+      .innerJoin("rfps", "rfps.rfp_id", "vendor_proposals.rfp_id")
+      .select([
+        // proposal columns
+        "vendor_proposals.proposal_id",
+        "vendor_proposals.rfp_id",
+        "vendor_proposals.vendor_id",
+        "vendor_proposals.raw_email_text",
+        "vendor_proposals.parsed_json",
+        "vendor_proposals.attachment_document_path",
+        "vendor_proposals.total_cost",
+        "vendor_proposals.received_at",
+
+        // rfp columns
+        "rfps.title as rfp_title",
+        "rfps.description as rfp_description",
+      ])
+      .where("vendor_proposals.vendor_id", "=", vendorId)
+      .execute();
+  }
 }
