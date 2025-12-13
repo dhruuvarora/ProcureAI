@@ -1,6 +1,6 @@
 import { db } from "../../db";
 import { JsonValue } from "../../db/db";
-import { geminiModel } from "../../utils/gemini";
+import { llm } from "../../utils/llm";
 import { normalizeRfp } from "../../utils/normalizer/rfp.normalizer";
 import { RFP_CREATION_PROMPT } from "../../utils/prompts/rfp.prompts";
 
@@ -82,21 +82,27 @@ export class RfpService {
   }
 
   async createRfpFromText(input: string) {
-    const result = await geminiModel.generateContent(
-      RFP_CREATION_PROMPT(input)
-    );
+    const rawText = await llm.generate(RFP_CREATION_PROMPT(input));
 
-    const rawText = result.response.text();
+    if (!rawText) {
+      throw new Error("AI returned empty response");
+    }
 
     let aiJson;
     try {
       aiJson = JSON.parse(rawText);
-    } catch {
+    } catch (err) {
+      console.error("Gemini raw output:", rawText);
       throw new Error("AI returned invalid JSON");
     }
 
     const normalized = normalizeRfp(aiJson);
 
+    if (!normalized.items || normalized.items.length === 0) {
+      throw new Error("RFP must contain at least one item");
+    }
+
+    // 4️⃣ DB insert
     const inserted = await db
       .insertInto("rfps")
       .values({

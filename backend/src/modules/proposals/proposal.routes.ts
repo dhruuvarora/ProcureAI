@@ -3,20 +3,20 @@ import { ProposalController } from "./proposal.controller";
 
 const router = Router();
 
-router.post("/proposal", ProposalController.createProposal);
-router.get("/proposals", ProposalController.getAllProposals);
-router.get("/proposal/:id", ProposalController.getProposalById);
-router.get("/proposals/rfp/:rfpId", ProposalController.getProposalsByRfp);
+router.post("/create", ProposalController.createProposal);
+router.get("/get", ProposalController.getAllProposals);
+router.get("/get/:id", ProposalController.getProposalById);
+router.get("/get/rfp/:rfpId", ProposalController.getProposalsByRfp);
 router.get(
-  "/proposals/vendor/:vendorId",
+  "/get/vendor/:vendorId",
   ProposalController.getProposalsByVendor
 );
 router.put(
-  "/proposal/:proposalId/evaluate",
+  "/:proposalId/evaluate",
   ProposalController.evaluateProposal
 );
 router.post(
-  "/proposal/:proposalId/ai-summary",
+  "/:proposalId/ai-summary",
   ProposalController.generateAiSummary
 );
 

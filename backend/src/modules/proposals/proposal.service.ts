@@ -1,6 +1,7 @@
 import { db } from "../../db";
 import { ProposalStatus } from "../../db/db";
-import { geminiModel } from "../../utils/gemini";
+import { llm } from "../../utils/llm";
+
 import { PROPOSAL_COMPARISON_PROMPT } from "../../utils/prompts/comparison.prompt";
 
 interface ProposalInput {
@@ -182,7 +183,6 @@ export class ProposalService {
   }
 
   static async generateAiSummary(proposalId: string) {
-    // 1. proposal fetch karo
     const proposal = await db
       .selectFrom("vendor_proposals")
       .select(["proposal_id", "raw_email_text"])
@@ -193,27 +193,44 @@ export class ProposalService {
       throw new Error("Proposal not found");
     }
 
-    // 2. prompt banao
     const prompt = `
 You are an AI assistant helping evaluate vendor proposals.
 
-Read the proposal below and return a JSON with:
-- summary (short paragraph)
-- total_cost (number if mentioned)
-- delivery_time (string if mentioned)
-- key_points (array of strings)
+Read the proposal below and return STRICT JSON only:
+{
+  "summary": string,
+  "total_cost": number | null,
+  "delivery_time": string | null,
+  "key_points": string[]
+}
+
+Rules:
+- If a field is not mentioned, return null.
+- Do not add explanations.
+- Return only valid JSON.
 
 Proposal:
 ${proposal.raw_email_text}
 `;
-    const result = await geminiModel.generateContent(prompt);
-    const responseText = result.response.text();
+    const rawText = await 
+    llm.generate(prompt);
 
-    let parsed;
+    if (!rawText) {
+      throw new Error("AI returned empty response");
+    }
+
+    let parsed: any;
     try {
-      parsed = JSON.parse(responseText);
-    } catch {
-      parsed = { summary: responseText };
+      parsed = JSON.parse(rawText);
+    } catch (err) {
+      console.error("Gemini raw output:", rawText);
+
+      parsed = {
+        summary: rawText,
+        total_cost: null,
+        delivery_time: null,
+        key_points: [],
+      };
     }
 
     const updated = await db
@@ -255,20 +272,31 @@ ${proposal.raw_email_text}
   static async compareProposals(rfpId: string) {
     const { rfp, proposals } = await this.getComparisonData(rfpId);
 
-    const result = await geminiModel.generateContent(
+    if (!proposals || proposals.length === 0) {
+      throw new Error("No proposals available for comparison");
+    }
+
+    const rawText = await llm.generate(
       PROPOSAL_COMPARISON_PROMPT(rfp.structured_json, proposals)
     );
 
-    let aiOutput;
+    if (!rawText) {
+      throw new Error("AI returned empty comparison response");
+    }
+
+    let aiOutput: any;
     try {
-      aiOutput = JSON.parse(result.response.text());
-    } catch {
+      aiOutput = JSON.parse(rawText);
+    } catch (err) {
+      console.error("Gemini comparison raw output:", rawText);
       throw new Error("AI returned invalid comparison JSON");
     }
 
     return {
       rfp_id: rfp.rfp_id,
-      ...aiOutput,
+      summary: aiOutput.summary ?? "",
+      recommended_vendor: aiOutput.recommended_vendor ?? null,
+      comparison: Array.isArray(aiOutput.comparison) ? aiOutput.comparison : [],
     };
   }
 }
