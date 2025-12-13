@@ -1,5 +1,8 @@
 import { db } from "../../db";
 import { JsonValue } from "../../db/db";
+import { geminiModel } from "../../utils/gemini";
+import { normalizeRfp } from "../../utils/normalizer/rfp.normalizer";
+import { RFP_CREATION_PROMPT } from "../../utils/prompts/rfp.prompts";
 
 interface RfpPayload {
   title: string;
@@ -76,6 +79,39 @@ export class RfpService {
       .executeTakeFirst();
 
     return deleted;
+  }
+
+  async createRfpFromText(input: string) {
+    const result = await geminiModel.generateContent(
+      RFP_CREATION_PROMPT(input)
+    );
+
+    const rawText = result.response.text();
+
+    let aiJson;
+    try {
+      aiJson = JSON.parse(rawText);
+    } catch {
+      throw new Error("AI returned invalid JSON");
+    }
+
+    const normalized = normalizeRfp(aiJson);
+
+    const inserted = await db
+      .insertInto("rfps")
+      .values({
+        title: "AI Generated RFP",
+        description: input,
+        structured_json: normalized,
+        budget: normalized.budget,
+        delivery_time: normalized.delivery_days
+          ? `${normalized.delivery_days} days`
+          : null,
+      })
+      .returningAll()
+      .executeTakeFirst();
+
+    return inserted;
   }
 }
 

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { ProposalService } from "./proposal.service";
+import { ProposalStatus } from "../../db/db";
 
 export class ProposalController {
   static async createProposal(req: Request, res: Response) {
@@ -130,6 +131,63 @@ export class ProposalController {
       return res.status(500).json({
         success: false,
         message: "Internal server error",
+      });
+    }
+  }
+
+  static async evaluateProposal(req: Request, res: Response) {
+    try {
+      const { proposalId } = req.params;
+      const { status, score, remarks } = req.body as {
+        status: ProposalStatus;
+        score?: number;
+        remarks?: string;
+      };
+
+      const updated = await ProposalService.evaluateProposal(
+        proposalId,
+        status,
+        score,
+        remarks
+      );
+
+      if (!updated) {
+        return res.status(404).json({
+          success: false,
+          message: "Proposal not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Proposal evaluated successfully",
+        data: updated,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  }
+
+  static async generateAiSummary(req: Request, res: Response) {
+    try {
+      const { proposalId } = req.params;
+
+      const updated = await ProposalService.generateAiSummary(proposalId);
+
+      return res.status(200).json({
+        success: true,
+        message: "AI summary generated",
+        data: updated,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to generate AI summary",
       });
     }
   }

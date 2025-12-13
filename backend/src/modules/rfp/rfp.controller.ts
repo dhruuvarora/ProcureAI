@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import RfpService from "./rfp.service";
+import { ProposalService } from "../proposals/proposal.service";
 
 export class RfpController {
   async createRfp(req: Request, res: Response) {
@@ -89,7 +90,7 @@ export class RfpController {
       });
     }
   }
-  
+
   async deleteRfp(req: Request, res: Response) {
     const id = req.params.id;
 
@@ -100,6 +101,52 @@ export class RfpController {
       message: "RFP deleted successfully",
       data: deletedRfp,
     });
+  }
+
+  async createFromText(req: Request, res: Response) {
+    try {
+      const { text } = req.body;
+
+      if (!text) {
+        return res.status(400).json({
+          success: false,
+          message: "text is required",
+        });
+      }
+
+      const rfp = await RfpService.createRfpFromText(text);
+
+      return res.status(201).json({
+        success: true,
+        message: "RFP created from natural language",
+        data: rfp,
+      });
+    } catch (error: any) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to create RFP",
+      });
+    }
+  }
+
+  async compareRfp(req: Request, res: Response) {
+    try {
+      const { rfpId } = req.params;
+
+      const comparison = await ProposalService.compareProposals(rfpId);
+
+      return res.status(200).json({
+        success: true,
+        data: comparison,
+      });
+    } catch (error: any) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to compare proposals",
+      });
+    }
   }
 }
 

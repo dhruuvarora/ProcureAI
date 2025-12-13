@@ -1,4 +1,7 @@
 import { db } from "../../db";
+import { ProposalStatus } from "../../db/db";
+import { geminiModel } from "../../utils/gemini";
+import { PROPOSAL_COMPARISON_PROMPT } from "../../utils/prompts/comparison.prompt";
 
 interface ProposalInput {
   rfp_id: string;
@@ -158,5 +161,114 @@ export class ProposalService {
       ])
       .where("vendor_proposals.vendor_id", "=", vendorId)
       .execute();
+  }
+
+  static async evaluateProposal(
+    proposalId: string,
+    status: ProposalStatus,
+    score?: number,
+    remarks?: string
+  ) {
+    return db
+      .updateTable("vendor_proposals")
+      .set({
+        status,
+        ...(score !== undefined && { score }),
+        ...(remarks !== undefined && { remarks }),
+      })
+      .where("proposal_id", "=", proposalId)
+      .returningAll()
+      .executeTakeFirst();
+  }
+
+  static async generateAiSummary(proposalId: string) {
+    // 1. proposal fetch karo
+    const proposal = await db
+      .selectFrom("vendor_proposals")
+      .select(["proposal_id", "raw_email_text"])
+      .where("proposal_id", "=", proposalId)
+      .executeTakeFirst();
+
+    if (!proposal) {
+      throw new Error("Proposal not found");
+    }
+
+    // 2. prompt banao
+    const prompt = `
+You are an AI assistant helping evaluate vendor proposals.
+
+Read the proposal below and return a JSON with:
+- summary (short paragraph)
+- total_cost (number if mentioned)
+- delivery_time (string if mentioned)
+- key_points (array of strings)
+
+Proposal:
+${proposal.raw_email_text}
+`;
+    const result = await geminiModel.generateContent(prompt);
+    const responseText = result.response.text();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(responseText);
+    } catch {
+      parsed = { summary: responseText };
+    }
+
+    const updated = await db
+      .updateTable("vendor_proposals")
+      .set({
+        parsed_json: parsed,
+      })
+      .where("proposal_id", "=", proposalId)
+      .returningAll()
+      .executeTakeFirst();
+
+    return updated;
+  }
+
+  static async getComparisonData(rfpId: string) {
+    const rfp = await db
+      .selectFrom("rfps")
+      .select(["rfp_id", "structured_json"])
+      .where("rfp_id", "=", rfpId)
+      .executeTakeFirst();
+
+    if (!rfp) throw new Error("RFP not found");
+
+    const proposals = await db
+      .selectFrom("vendor_proposals")
+      .innerJoin("vendors", "vendors.vendor_id", "vendor_proposals.vendor_id")
+      .select([
+        "vendors.vendor_id",
+        "vendors.vendor_name",
+        "vendor_proposals.total_cost",
+        "vendor_proposals.parsed_json",
+      ])
+      .where("vendor_proposals.rfp_id", "=", rfpId)
+      .execute();
+
+    return { rfp, proposals };
+  }
+
+  static async compareProposals(rfpId: string) {
+    const { rfp, proposals } = await this.getComparisonData(rfpId);
+
+    const result = await geminiModel.generateContent(
+      PROPOSAL_COMPARISON_PROMPT(rfp.structured_json, proposals)
+    );
+
+    let aiOutput;
+    try {
+      aiOutput = JSON.parse(result.response.text());
+    } catch {
+      throw new Error("AI returned invalid comparison JSON");
+    }
+
+    return {
+      rfp_id: rfp.rfp_id,
+      ...aiOutput,
+    };
   }
 }
