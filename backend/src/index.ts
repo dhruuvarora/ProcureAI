@@ -22,6 +22,6 @@ app.listen(PORT, () => {
 setInterval(() => {
   console.log("Checking Gmail inbox...");
   pollInbox();
-}, 15000); // every 15 seconds
+}, 60000); // every 15 seconds
 
 export default app;
