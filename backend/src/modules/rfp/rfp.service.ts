@@ -102,7 +102,6 @@ export class RfpService {
       throw new Error("RFP must contain at least one item");
     }
 
-    // 4️⃣ DB insert
     const inserted = await db
       .insertInto("rfps")
       .values({
