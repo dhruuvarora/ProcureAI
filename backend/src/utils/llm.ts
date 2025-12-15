@@ -4,6 +4,13 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY!,
 });
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+}
+
 export const llm = {
   generate: async (prompt: string): Promise<string> => {
     const completion = await groq.chat.completions.create({
@@ -11,8 +18,13 @@ export const llm = {
       messages: [
         {
           role: "system",
-          content:
-            "You are a backend AI assistant. Always return STRICT JSON when asked.",
+          content: `
+            You are a backend AI assistant.
+            Return STRICT JSON only.
+            Do NOT use markdown.
+            Do NOT wrap output in triple backticks.
+            Do NOT add explanations.
+            `,
         },
         {
           role: "user",
@@ -28,6 +40,6 @@ export const llm = {
       throw new Error("LLM returned empty response");
     }
 
-    return text;
+    return stripMarkdown(text);
   },
 };
