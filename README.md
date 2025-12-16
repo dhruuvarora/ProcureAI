@@ -1,3 +1,4 @@
+<img width="1536" height="1024" alt="ProcureAI" src="https://github.com/user-attachments/assets/14253148-3e4a-47c3-b9ab-96a48bc81985" />
 # ProcureAI — AI-Powered Procurement & RFP Management System
 
 ProcureAI is a full-stack procurement management system that digitizes and automates the **end-to-end Request for Proposal (RFP) lifecycle**, enabling organizations to manage vendors, collect proposals, and make data-driven decisions using AI.
