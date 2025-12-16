@@ -72,25 +72,42 @@ export class VendorService {
   }
 
   async deleteVendor(vendorId: string) {
-    try {
-      const vendor = await db
-        .selectFrom("vendors")
-        .select(["vendor_id"])
-        .where("vendor_id", "=", vendorId)
-        .executeTakeFirst();
+    const vendor = await db
+      .selectFrom("vendors")
+      .select("vendor_id")
+      .where("vendor_id", "=", vendorId)
+      .executeTakeFirst();
 
-      if (!vendor) {
-        return false;
-      }
-      await db
-        .deleteFrom("vendors")
-        .where("vendors.vendor_id", "=", vendorId)
-        .execute();
-
-      return true;
-    } catch (error) {
-      throw new Error("Failed to delete vendor: " + error);
+    if (!vendor) {
+      return { ok: false, reason: "NOT_FOUND" };
     }
+
+    const mapping = await db
+      .selectFrom("rfps_vendors")
+      .select("id")
+      .where("vendor_id", "=", vendorId)
+      .executeTakeFirst();
+
+    if (mapping) {
+      return { ok: false, reason: "MAPPED_TO_RFP" };
+    }
+
+    const proposal = await db
+      .selectFrom("vendor_proposals")
+      .select("proposal_id")
+      .where("vendor_id", "=", vendorId)
+      .executeTakeFirst();
+
+    if (proposal) {
+      return { ok: false, reason: "HAS_PROPOSALS" };
+    }
+
+    await db
+      .deleteFrom("vendors")
+      .where("vendor_id", "=", vendorId)
+      .executeTakeFirst();
+
+    return { ok: true };
   }
 
   async updateVendor(vendorId: string, payload: Partial<VendorPayload>) {

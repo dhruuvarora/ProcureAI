@@ -55,12 +55,34 @@ export class CategoryService {
   }
 
   async deleteCategory(id: string) {
-    try {
-      await db.deleteFrom("categories").where("category_id", "=", id).execute();
-      return true;
-    } catch (error) {
-      throw new Error("Failed to delete category: " + error);
+    // check if category exists
+    const category = await db
+      .selectFrom("categories")
+      .select("category_id")
+      .where("category_id", "=", id)
+      .executeTakeFirst();
+
+    if (!category) {
+      return { ok: false, reason: "NOT_FOUND" };
     }
+
+    // check if vendors are using this category
+    const vendorUsing = await db
+      .selectFrom("vendors")
+      .select("vendor_id")
+      .where("category_id", "=", id)
+      .executeTakeFirst();
+
+    if (vendorUsing) {
+      return { ok: false, reason: "IN_USE" };
+    }
+
+    await db
+      .deleteFrom("categories")
+      .where("category_id", "=", id)
+      .executeTakeFirst();
+
+    return { ok: true };
   }
 }
 

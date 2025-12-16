@@ -94,12 +94,25 @@ export class RfpController {
   async deleteRfp(req: Request, res: Response) {
     const id = req.params.id;
 
-    const deletedRfp = await RfpService.deleteRfp(id);
+    const result = await RfpService.deleteRfp(id);
+
+    if (!result.ok && result.reason === "NOT_FOUND") {
+      return res.status(404).json({
+        success: false,
+        message: "RFP not found",
+      });
+    }
+
+    if (!result.ok) {
+      return res.status(409).json({
+        success: false,
+        message: "RFP has mapped vendors or proposals and cannot be deleted",
+      });
+    }
 
     return res.status(200).json({
       success: true,
       message: "RFP deleted successfully",
-      data: deletedRfp,
     });
   }
 

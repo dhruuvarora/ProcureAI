@@ -73,12 +73,42 @@ export class RfpService {
   }
 
   async deleteRfp(rfpId: string) {
-    const deleted = await db
-      .deleteFrom("rfps")
+    // check existence
+    const rfp = await db
+      .selectFrom("rfps")
+      .select("rfp_id")
       .where("rfp_id", "=", rfpId)
       .executeTakeFirst();
 
-    return deleted;
+    if (!rfp) {
+      return { ok: false, reason: "NOT_FOUND" };
+    }
+
+    // check proposals
+    const proposal = await db
+      .selectFrom("vendor_proposals")
+      .select("proposal_id")
+      .where("rfp_id", "=", rfpId)
+      .executeTakeFirst();
+
+    if (proposal) {
+      return { ok: false, reason: "HAS_PROPOSALS" };
+    }
+
+    // check mappings
+    const mapping = await db
+      .selectFrom("rfps_vendors")
+      .select("id")
+      .where("rfp_id", "=", rfpId)
+      .executeTakeFirst();
+
+    if (mapping) {
+      return { ok: false, reason: "HAS_MAPPINGS" };
+    }
+
+    await db.deleteFrom("rfps").where("rfp_id", "=", rfpId).executeTakeFirst();
+
+    return { ok: true };
   }
 
   async createRfpFromText(input: string) {

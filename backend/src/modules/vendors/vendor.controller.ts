@@ -116,12 +116,26 @@ export class VendorController {
     const id = req.params.id;
 
     try {
-      const deleted = await VendorService.deleteVendor(id);
+      const result = await VendorService.deleteVendor(id);
 
-      if (!deleted) {
+      if (!result.ok && result.reason === "NOT_FOUND") {
         return res.status(404).json({
           success: false,
           message: "Vendor not found",
+        });
+      }
+
+      if (!result.ok && result.reason === "MAPPED_TO_RFP") {
+        return res.status(409).json({
+          success: false,
+          message: "Vendor is mapped to an RFP and cannot be deleted",
+        });
+      }
+
+      if (!result.ok && result.reason === "HAS_PROPOSALS") {
+        return res.status(409).json({
+          success: false,
+          message: "Vendor has submitted proposals and cannot be deleted",
         });
       }
 

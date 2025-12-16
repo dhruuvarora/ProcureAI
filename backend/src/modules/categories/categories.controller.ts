@@ -68,12 +68,25 @@ export class CategoriesController {
   async deleteCategory(req: Request, res: Response) {
     const id = req.params.id;
 
-    const deleted = await CategoryService.deleteCategory(id);
+    const result = await CategoryService.deleteCategory(id);
+
+    if (!result.ok && result.reason === "NOT_FOUND") {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    if (!result.ok && result.reason === "IN_USE") {
+      return res.status(409).json({
+        success: false,
+        message: "Category is assigned to vendors and cannot be deleted",
+      });
+    }
 
     return res.status(200).json({
       success: true,
       message: "Category deleted successfully",
-      data: deleted,
     });
   }
 }
