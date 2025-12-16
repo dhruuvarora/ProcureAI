@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ProcureAI Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+  <!-- ===== App Header ===== -->
+  <header class="app-header">
+    <h1>ProcureAI</h1>
+    <span class="subtitle">AI-Powered RFP Management System</span>
+  </header>
+
+  <!-- ===== App Layout ===== -->
+  <div class="app-container">
+
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+      <nav>
+        <ul>
+          <li class="nav-item active" data-section="dashboard">Dashboard</li>
+          <li class="nav-item" data-section="categories">Categories</li>
+          <li class="nav-item" data-section="vendors">Vendors</li>
+          <li class="nav-item" data-section="rfps">RFPs</li>
+          <li class="nav-item" data-section="proposals">Proposals</li>
+          <li class="nav-item" data-section="ai">AI Insights</li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- ===== Main Content ===== -->
+    <main class="main-content">
+
+      <!-- ===== Dashboard ===== -->
+      <section id="dashboard" class="page-section visible">
+        <h2>Dashboard</h2>
+        <p>Welcome to ProcureAI. Use the sidebar to manage procurement workflows.</p>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Categories</h3>
+            <span id="stat-categories">—</span>
+          </div>
+          <div class="stat-card">
+            <h3>Vendors</h3>
+            <span id="stat-vendors">—</span>
+          </div>
+          <div class="stat-card">
+            <h3>RFPs</h3>
+            <span id="stat-rfps">—</span>
+          </div>
+          <div class="stat-card">
+            <h3>Proposals</h3>
+            <span id="stat-proposals">—</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Categories ===== -->
+      <section id="categories" class="page-section">
+        <h2>Categories</h2>
+
+        <div class="card">
+          <h3>Create Category</h3>
+          <input type="text" id="categoryName" placeholder="Category name" />
+          <button id="createCategoryBtn">Create</button>
+        </div>
+
+        <div class="card">
+          <h3>All Categories</h3>
+          <table id="categoriesTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== Vendors ===== -->
+      <section id="vendors" class="page-section">
+        <h2>Vendors</h2>
+
+        <div class="card">
+          <h3>Register Vendor</h3>
+          <input type="text" id="vendorName" placeholder="Vendor name" />
+          <input type="email" id="vendorEmail" placeholder="Email" />
+          <input type="text" id="vendorPhone" placeholder="Phone" />
+          <input type="text" id="vendorOrg" placeholder="Organization" />
+          <input type="number" id="vendorCategoryId" placeholder="Category ID" />
+          <button id="createVendorBtn">Register</button>
+        </div>
+
+        <div class="card">
+          <h3>All Vendors</h3>
+          <table id="vendorsTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Email</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== RFPs ===== -->
+      <section id="rfps" class="page-section">
+        <h2>RFPs</h2>
+
+        <div class="card">
+          <h3>Create RFP</h3>
+          <input type="text" id="rfpTitle" placeholder="Title" />
+          <textarea id="rfpDescription" placeholder="Description"></textarea>
+          <input type="number" id="rfpBudget" placeholder="Budget" />
+          <input type="text" id="rfpDelivery" placeholder="Delivery time" />
+          <button id="createRfpBtn">Create RFP</button>
+        </div>
+
+        <div class="card">
+          <h3>All RFPs</h3>
+          <table id="rfpsTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Budget</th>
+                <th>Delivery</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== Proposals ===== -->
+      <section id="proposals" class="page-section">
+        <h2>Proposals</h2>
+
+        <div class="card">
+          <h3>Submit Proposal</h3>
+          <input type="number" id="proposalRfpId" placeholder="RFP ID" />
+          <input type="number" id="proposalVendorId" placeholder="Vendor ID" />
+          <textarea id="proposalText" placeholder="Proposal text / email body"></textarea>
+          <button id="createProposalBtn">Submit Proposal</button>
+        </div>
+
+        <div class="card">
+          <h3>All Proposals</h3>
+          <table id="proposalsTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>RFP</th>
+                <th>Vendor</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== AI Insights ===== -->
+      <section id="ai" class="page-section">
+        <h2>AI Insights</h2>
+
+        <div class="card">
+          <h3>Compare Proposals (RFP)</h3>
+          <input type="number" id="aiCompareRfpId" placeholder="RFP ID" />
+          <button id="compareRfpBtn">Compare</button>
+        </div>
+
+        <div class="card">
+          <h3>AI Output</h3>
+          <pre id="aiOutput" class="ai-output">
+Waiting for AI response...
+          </pre>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===== Scripts ===== -->
+  <script src="./app.js"></script>
+
+</body>
+</html>
